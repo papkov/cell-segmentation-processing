@@ -1,0 +1,8 @@
+Processing of segmented probability map to detect possible merged cells
+based on the median cell size in the image
+
+seg_proc_morph2.py file requires an input image of segmented probability map of cells
+which will be processed to output image where possible merges are 
+highlighted.
+
+
