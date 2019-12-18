@@ -1,0 +1,3 @@
+# Improving Instance Segmentation for Cell Microscopy
+
+Instance segmentation is an essential part of a fluorescent microscopy image processing pipeline. Accurate cell segmentation is necessary for the correctness of any downstream analysis such as cell counting and measuring morphological properties. Although segmentation of e.g. DAPI-stained cell nuclei is a well-known task, many modern methods still suffer from unwanted mergers and splits of separate cell instances. Here, we explore various post-processing methods to improve instance segmentation for the given set of segmentation masks produced by a trained neural network.
