@@ -1,3 +1,11 @@
 segmentTest.py
 
 Used for splitting elliptically merged cells by using points of concavity of contours.
+
+Main things to keep in mind:
+* fileName - it is a string value that is the name of the image library used for testing. Data is expected to be located in the data subfolder and as a .npz file.
+* dataIndexes - it is an array that defined what pictures of the dataset get processed
+* filePrefix - saved image prefixes. Default folder is "res_*filename*/t*sequenceIndex*.png". The folder needs to be created by hand else it is not saved
+
+CSV output - 
+Image id, found raw contours, split contours, ellapsed time
