@@ -19,14 +19,19 @@ from shapely.geometry import Polygon, LineString
 
 import random as r
 
+import csv
+import time
 
 #data = np.load('data/fluorescent.npy')
-data = np.load('data/HeLa.npz')
+fileName = "HepG2"
+data = np.load('data/' + fileName + '.npz')
 
-filePrefix = "res2/t"
+filePrefix = "res_" + fileName + "_split/t"
 
-dataIndexes = list(range(430))
+csvFile = "cellCount-" + fileName + ".csv"
 
+dataIndexes = list(range(0, 431))
+logCSV = False
 #dataIndexes = [24, 35, 39, 51, 55, 56, 66, 68, 71, 72, 84, 98, 164, 213, 224, 228, 253, 301, 330, 333, 337, 349, 370, 382, 385, 399, 408, 411, 421]
 
 dataIndexes = [0]
@@ -167,9 +172,13 @@ def sliceList(list, indexes):
 
         correctedIndex = obj - smallestIndex
 
-        slicedList.append(correctedList[previousIndex: correctedIndex])
-        previousIndex = correctedIndex
+        print("taking indexes:", previousIndex, correctedIndex)
 
+        if previousIndex == 0:
+            slicedList.append([correctedList[-1]] + correctedList[previousIndex: correctedIndex + 1])
+        else:
+            slicedList.append(correctedList[previousIndex: correctedIndex + 1])
+        previousIndex = correctedIndex
     slicedList.append(correctedList[sortedIndexes[-1] - smallestIndex:])
 
     return slicedList
@@ -230,9 +239,12 @@ def linearExpandLine(points, minLenth):
 
 
 def lineInContour(cnt, line):
-    polygon = Polygon(cnt)
-    line = LineString(line)
-    return not line.touches(polygon)
+    try:
+        polygon = Polygon(cnt)
+        line = LineString(line)
+        return not line.touches(polygon)
+    except:
+        return False
 
 
 def dist2(p1, p2):
@@ -269,7 +281,7 @@ def evaluateCavityForMirror(cavity):
 
     angle = 140
 
-    return 0 < pointConcavity < np.deg2rad(angle) or 0 < inverseCavity < np.deg2rad(angle)
+    return 0 < cavity < np.deg2rad(angle) or 0 < inverseCavity < np.deg2rad(angle)
 
 
 def evaluateEllipse(ellipse, maxSideRatio, maxSize):
@@ -289,6 +301,7 @@ def evaluateEllipse(ellipse, maxSideRatio, maxSize):
 
 # main loop
 for dataIndex in dataIndexes:
+    start = time.time()
     segImOriginal = segData[dataIndex]
 
     cv2.imshow("original", segImOriginal)
@@ -347,6 +360,7 @@ for dataIndex in dataIndexes:
 
     breakFlag = False
 
+    contourCount = 0
     for label in np.unique(labels):
         if label == 0:
             continue
@@ -360,8 +374,8 @@ for dataIndex in dataIndexes:
         c = max(cnts, key=cv2.contourArea)
 
         convertedCnt = np.asarray(convertContours(cnts[0]))
-        approxCnt = skimage.measure.approximate_polygon(convertedCnt, tolerance=1)
-        approxCnt = fuse(approxCnt, 6)
+        approxCnt = skimage.measure.approximate_polygon(convertedCnt, tolerance=0.75)
+        approxCnt = fuse(approxCnt, 5)
 
         cvContours = np.asarray([approxCnt])
 
@@ -455,20 +469,25 @@ for dataIndex in dataIndexes:
             else:
                 print("FFS", cvContours)
                 el = cv2.fitEllipse(cvContours)
-                drawRectangle = not evaluateEllipse(el, 4, 200)
+                drawRectangle = not evaluateEllipse(el, 4, 50)
 
                 # cl = (r.randint(0, 255), r.randint(0, 255), r.randint(0, 255))
 
-            cl = (r.randint(32, 255), r.randint(32, 255), r.randint(32, 255))
+                                                                             
 
+            #cl = (r.randint(32, 255), r.randint(32, 255), r.randint(32, 255))
+            cl = (0, 255, 0)
             if drawRectangle:
                 rect = cv2.minAreaRect(cvContours)
                 box = cv2.boxPoints(rect)
                 box = np.int0(box)
-                cv2.drawContours(segImColor, [box], 0, cl, thickness=-1)
-            else:
-                # cl = (0, 255, 0)
-                cv2.ellipse(segImColor, el, cl, -1)
+                #cv2.drawContours(segImColor, cvContours, 0, cl, thickness=1)
+            #else:
+            #    cv2.ellipse(segImColor, el, cl, 1)
+
+            cv2.line(segImColor, l[-1], l[0], (0, 0, 0), 2)
+
+            contourCount += 1
 
             if breakFlag:
                 break
@@ -476,6 +495,13 @@ for dataIndex in dataIndexes:
         if breakFlag:
             break
 
+    end = time.time()
+
+    if logCSV:
+        with open(csvFile, 'a', newline='') as file:
+            ellapsed = end - start
+            writer = csv.writer(file)
+            writer.writerow([dataIndex, len(np.unique(labels)), contourCount, ellapsed])
         #((x, y), r) = cv2.minEnclosingCircle(cvContours)
         #cv2.putText(segImColor, "#{}".format(label), (int(x) + 10, int(y) + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
         #break
