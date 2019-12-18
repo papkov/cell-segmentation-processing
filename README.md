@@ -11,7 +11,7 @@ Instance segmentation is an essential part of a fluorescent microscopy image pro
 
 Methods are evaluated by pixel-wise accuracy, precision, recall, F1-score, object-wise F1-score.
 
-|                     | Acc.  | Prec.  | Recall| PW F1 | OW F1  | Merges | Splits   | t, s/img |
+|                     | Accuracy  | Precision  | Recall| PW F1 | OW F1  | Merges | Splits   | t, s/img |
 |---------------------|-------|--------|-------|-------|--------|--------|----------|------|
 | Baseline            | 0.887 | 0.816  | 0.708 | 0.758 | 0.327  | 17869  | 17159    | -    |
 | Watershed           | 0.886 | 0.817  | 0.704 | 0.756 | 0.335  | 9299   | 28833    | 11.7 |
